@@ -1,9 +1,12 @@
 import express from "express";
-import { sequelize, Product } from "./db";
+import path from "path";
+import { Product } from "./db";
+import upload from "./filestorage";
 
 const app = express();
 
 app.use(express.json());
+app.use("/uploads", express.static("uploads"));
 
 const firstproduct = await Product.create({
   name: "Sample Product",
@@ -27,8 +30,17 @@ app.get("/products/:id", async (request, response) => {
   }
 });
 
-app.post("/products", async (request, response) => {
-  const newProduct = await Product.create(request.body);
+app.post("/products", upload.single("image"), async (request, response) => {
+  if (!request.file) {
+    return response.status(400).json({ error: "Image file is required" });
+  }
+  const newProduct = await Product.create({
+    name: request.body.name,
+    description: request.body.description,
+    price: request.body.price,
+    category: request.body.category,
+    image: request.file.filename,
+  });
   response.status(201).json(newProduct);
 });
 
