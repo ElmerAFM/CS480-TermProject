@@ -2,10 +2,11 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "",
-  "main": "server.ts",
+  "main": "app.ts",
   "scripts": {
-    "dev": "nodemon --exec tsx app.ts",
-    "start": "tsx app.ts",
+    "build": "tsc",
+    "start": "node dist/app.js",
+    "dev": "nodemon --exec tsx src/app.ts",
     "test": "node index.js"
   },
   "keywords": [],
@@ -13,19 +14,19 @@
   "license": "ISC",
   "type": "module",
   "dependencies": {
-    "@types/express": "^5.0.5",
-    "@types/node": "^24.10.1",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "multer": "^2.0.2",
     "mysql2": "^3.15.3",
+    "sequelize": "^6.37.7"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.5",
+    "@types/multer": "^2.0.0",
+    "@types/node": "^24.10.1",
     "nodemon": "^3.1.11",
-    "sequelize": "^6.37.7",
     "sequelize-cli": "^6.6.3",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"
-  },
-  "devDependencies": {
-    "@types/multer": "^2.0.0"
   }
 }

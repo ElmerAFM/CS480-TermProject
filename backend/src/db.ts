@@ -1,58 +1,30 @@
-import { Sequelize, DataTypes, Model, InferAttributes, InferCreationAttributes } from "sequelize";
+import { Sequelize } from "sequelize";
 
-const sequelize = new Sequelize(process.env.DATABASE_URL!);
+const sequelize = new Sequelize(process.env.DATABASE_URL!, {
+  logging: false, // Set to console.log to see SQL queries
+});
 
-class Product extends Model<InferAttributes<Product>, InferCreationAttributes<Product>> {
-  declare id: number | null;
-  declare name: string;
-  declare description: string;
-  declare price: number;
-  declare category: string;
-  declare image: string;
-  declare imageUrl: string | null;
+// Test database connection
+async function testConnection() {
+  try {
+    await sequelize.authenticate();
+    console.log("Database connection established successfully.");
+  } catch (error) {
+    console.error("Unable to connect to the database:", error);
+    throw error;
+  }
 }
 
-Product.init(
-  {
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true,
-    },
-    name: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    description: {
-      type: DataTypes.TEXT,
-    },
-    price: {
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: false,
-    },
-    category: {
-      type: DataTypes.STRING,
-    },
-    image: {
-      type: DataTypes.STRING,
-    },
-    imageUrl: {
-      type: DataTypes.VIRTUAL,
-      get() {
-        const imagePath = this.getDataValue("image");
-        if (!imagePath) return null;
-        const baseUrl = process.env.BASE_URL || "http://localhost:3000";
-        return `${baseUrl}/uploads/${imagePath}`;
-      },
-    },
-  },
-  {
-    sequelize,
-    modelName: "Product",
-    tableName: "products",
+// Initialize database - sync all models
+async function initializeDatabase() {
+  try {
+    await testConnection();
+    await sequelize.sync({ alter: true });
+    console.log("Database synchronized successfully.");
+  } catch (error) {
+    console.error("Failed to initialize database:", error);
+    throw error;
   }
-);
+}
 
-await Product.sync({ force: true });
-
-export { Product, sequelize };
+export { sequelize, initializeDatabase };
