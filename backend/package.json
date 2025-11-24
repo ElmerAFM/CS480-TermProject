@@ -4,17 +4,24 @@
   "description": "",
   "main": "server.ts",
   "scripts": {
-    "start": "ts-node server.ts"
+    "dev": "nodemon --exec tsx app.ts",
+    "start": "tsx app.ts",
+    "test": "node index.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "dependencies": {
     "@types/express": "^5.0.5",
     "@types/node": "^24.10.1",
+    "dotenv": "^17.2.3",
     "express": "^5.1.0",
-    "ts-node": "^10.9.2",
+    "mysql2": "^3.15.3",
+    "nodemon": "^3.1.11",
+    "sequelize": "^6.37.7",
+    "sequelize-cli": "^6.6.3",
+    "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   }
 }
