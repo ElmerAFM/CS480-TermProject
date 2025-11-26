@@ -40,7 +40,7 @@ Product.init(
       get() {
         const imagePath = this.getDataValue("image");
         if (!imagePath) return null;
-        const baseUrl = process.env.BASE_URL || "http://localhost:3000";
+        const baseUrl = process.env.BASE_URL || "http://localhost:5000";
         return `${baseUrl}/uploads/${imagePath}`;
       },
     },

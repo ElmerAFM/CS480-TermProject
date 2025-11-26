@@ -1,8 +1,7 @@
 import Router from "express";
-import multer from "multer";
+import upload from "../filestorage";
 import { getAllProducts, getProductById, createProduct, updateProduct, deleteProduct } from "../controllers/productController";
 
-const upload = multer({ dest: "uploads/" });
 const router = Router();
 
 router.get("/products", getAllProducts);
