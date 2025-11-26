@@ -3,19 +3,17 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import AddProductForm from "../components/AddProductForm";
+import { API_URL } from "@/config/api";
 
 export default function ProductsPage() {
   type Product = {
     id: number;
-    title: string;
+    name: string;
     category: string;
     price: number;
-
-    rating?: {
-      rate: number;
-      count: number;
-    };
-    image: string;
+    description?: string;
+    image?: string;
+    imageUrl?: string;
   };
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -23,7 +21,7 @@ export default function ProductsPage() {
 
   const fetchProducts = () => {
     setLoading(true);
-    fetch("https://fakestoreapi.com/products")
+    fetch(`${API_URL}/products`)
       .then((res) => res.json())
       .then((data) => {
         console.log(data);
@@ -63,10 +61,10 @@ export default function ProductsPage() {
                   <tr>
                     <th className="px-3 py-2 border text-sm">ID</th>
                     <th className="px-3 py-2 border text-sm">Image</th>
-                    <th className="px-3 py-2 border text-sm">Title</th>
+                    <th className="px-3 py-2 border text-sm">Name</th>
                     <th className="px-3 py-2 border text-sm">Category</th>
                     <th className="px-3 py-2 border text-sm">Price</th>
-                    <th className="px-3 py-2 border text-sm">Rating</th>
+                    <th className="px-3 py-2 border text-sm">Description</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -74,14 +72,12 @@ export default function ProductsPage() {
                     <tr key={product.id} className="hover:bg-gray-50 bg-white">
                       <td className="px-3 py-2 border text-center text-sm">{product.id}</td>
                       <td className="px-3 py-2 border">
-                        <div className="flex justify-center">
-                          <Image src={product.image} alt={product.title} width={40} height={40} className="object-contain" />
-                        </div>
+                        <div className="flex justify-center">{product.imageUrl ? <Image src={product.imageUrl} alt={product.name} width={40} height={40} className="object-contain" unoptimized /> : <div className="w-10 h-10 bg-gray-200 flex items-center justify-center text-xs text-gray-500">No img</div>}</div>
                       </td>
-                      <td className="px-3 py-2 border text-sm">{product.title}</td>
+                      <td className="px-3 py-2 border text-sm">{product.name}</td>
                       <td className="px-3 py-2 border capitalize text-sm">{product.category || "-"}</td>
-                      <td className="px-3 py-2 border text-right text-sm">${product.price.toFixed(2)}</td>
-                      <td className="px-3 py-2 border text-center text-sm">⭐ {product.rating?.rate.toFixed(1) ?? "N/A"}</td>
+                      <td className="px-3 py-2 border text-right text-sm">${Number(product.price).toFixed(2)}</td>
+                      <td className="px-3 py-2 border text-sm">{product.description || "-"}</td>
                     </tr>
                   ))}
                 </tbody>

@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, ChangeEvent, FormEvent } from "react";
+import { API_URL } from "@/config/api";
 
 type FormData = {
-  title: string;
+  name: string;
   price: string;
   description: string;
   category: string;
-  image: string;
+  image: File | null;
 };
 
 type Message = {
@@ -21,11 +22,11 @@ type AddProductFormProps = {
 
 export default function AddProductForm({ onProductAdded }: AddProductFormProps) {
   const [formData, setFormData] = useState<FormData>({
-    title: "",
+    name: "",
     price: "",
     description: "",
     category: "",
-    image: "",
+    image: null,
   });
   const [imagePreview, setImagePreview] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -36,46 +37,7 @@ export default function AddProductForm({ onProductAdded }: AddProductFormProps) 
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const compressImage = (file: File): Promise<string> => {
-    return new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-
-      reader.onload = (e: ProgressEvent<FileReader>) => {
-        const img = new Image();
-
-        img.onload = () => {
-          const canvas = document.createElement("canvas");
-          const ctx = canvas.getContext("2d");
-          const MAX_SIZE = 800;
-
-          let { width, height } = img;
-
-          if (width > height && width > MAX_SIZE) {
-            height = (height * MAX_SIZE) / width;
-            width = MAX_SIZE;
-          } else if (height > MAX_SIZE) {
-            width = (width * MAX_SIZE) / height;
-            height = MAX_SIZE;
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          ctx?.drawImage(img, 0, 0, width, height);
-
-          const compressedBase64 = canvas.toDataURL("image/jpeg", 0.7);
-          resolve(compressedBase64);
-        };
-
-        img.onerror = () => reject(new Error("Failed to load image"));
-        img.src = e.target?.result as string;
-      };
-
-      reader.onerror = () => reject(new Error("Failed to read file"));
-      reader.readAsDataURL(file);
-    });
-  };
-
-  const handleImageChange = async (e: ChangeEvent<HTMLInputElement>): Promise<void> => {
+  const handleImageChange = (e: ChangeEvent<HTMLInputElement>): void => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -84,18 +46,18 @@ export default function AddProductForm({ onProductAdded }: AddProductFormProps) 
       return;
     }
 
-    try {
-      const compressedImage = await compressImage(file);
-      setFormData((prev) => ({ ...prev, image: compressedImage }));
-      setImagePreview(compressedImage);
-    } catch (error) {
-      console.error("Image compression error:", error);
-      setMessage({ type: "error", text: "Failed to process image" });
-    }
+    setFormData((prev) => ({ ...prev, image: file }));
+
+    // Create preview
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
   };
 
   const isFormValid = (): boolean => {
-    return !!(formData.title && formData.price && parseFloat(formData.price) > 0 && formData.description && formData.category && formData.image);
+    return !!(formData.name && formData.price && parseFloat(formData.price) > 0 && formData.description && formData.category && formData.image);
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
@@ -105,23 +67,28 @@ export default function AddProductForm({ onProductAdded }: AddProductFormProps) 
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("https://fakestoreapi.com/products", {
+      const submitData = new FormData();
+      submitData.append("name", formData.name);
+      submitData.append("price", formData.price);
+      submitData.append("description", formData.description);
+      submitData.append("category", formData.category);
+      if (formData.image) {
+        submitData.append("image", formData.image);
+      }
+
+      const response = await fetch(`${API_URL}/products`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...formData,
-          price: parseFloat(formData.price),
-        }),
+        body: submitData,
       });
 
       if (!response.ok) {
         throw new Error("Failed to add product");
       }
 
-      const data = (await response.json()) as { id: number };
+      const data = await response.json();
 
       setMessage({ type: "success", text: `Product added! ID: ${data.id}` });
-      setFormData({ title: "", price: "", description: "", category: "", image: "" });
+      setFormData({ name: "", price: "", description: "", category: "", image: null });
       setImagePreview("");
 
       onProductAdded?.();
@@ -143,8 +110,8 @@ export default function AddProductForm({ onProductAdded }: AddProductFormProps) 
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium mb-1 text-gray-700">Title *</label>
-          <input type="text" name="title" value={formData.title} onChange={handleChange} className={inputClass} placeholder="Product title" required />
+          <label className="block text-sm font-medium mb-1 text-gray-700">Name *</label>
+          <input type="text" name="name" value={formData.name} onChange={handleChange} className={inputClass} placeholder="Product name" required />
         </div>
 
         <div>
@@ -165,7 +132,6 @@ export default function AddProductForm({ onProductAdded }: AddProductFormProps) 
         <div>
           <label className="block text-sm font-medium mb-1 text-gray-700">Image *</label>
           <input type="file" accept="image/*" onChange={handleImageChange} className={inputClass} required />
-          <p className="text-xs text-gray-500 mt-1">Auto-compressed to 800x800px</p>
         </div>
 
         {imagePreview && (
