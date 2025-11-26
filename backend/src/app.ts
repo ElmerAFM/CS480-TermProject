@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import config from "./config";
 import productRoutes from "./routes/productRoutes";
 import { initializeDatabase } from "./db";
@@ -6,6 +7,7 @@ import "./models/index"; // Import models to register them with Sequelize
 
 const app = express();
 
+app.use(cors());
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 app.use("/", productRoutes);
