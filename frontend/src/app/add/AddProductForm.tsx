@@ -2,42 +2,32 @@
 
 import { useState, ChangeEvent, FormEvent } from "react";
 import { API_URL } from "@/config/api";
-
-type FormData = {
-  name: string;
-  price: string;
-  description: string;
-  category: string;
-  image: File | null;
-};
-
-type Message = {
-  type: "success" | "error";
-  text: string;
-};
+import { ProductFormData, Message } from "@/types/product";
 
 type AddProductFormProps = {
   onProductAdded?: () => void;
 };
 
+const INPUT_CLASS = "w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm";
+
 export default function AddProductForm({ onProductAdded }: AddProductFormProps) {
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState<ProductFormData>({
     name: "",
     price: "",
     description: "",
     category: "",
     image: null,
   });
-  const [imagePreview, setImagePreview] = useState<string>("");
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [imagePreview, setImagePreview] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<Message | null>(null);
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>): void => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleImageChange = (e: ChangeEvent<HTMLInputElement>): void => {
+  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -48,19 +38,16 @@ export default function AddProductForm({ onProductAdded }: AddProductFormProps) 
 
     setFormData((prev) => ({ ...prev, image: file }));
 
-    // Create preview
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result as string);
-    };
+    reader.onloadend = () => setImagePreview(reader.result as string);
     reader.readAsDataURL(file);
   };
 
-  const isFormValid = (): boolean => {
+  const isFormValid = () => {
     return !!(formData.name && formData.price && parseFloat(formData.price) > 0 && formData.description && formData.category && formData.image);
   };
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!isFormValid()) return;
 
@@ -72,25 +59,21 @@ export default function AddProductForm({ onProductAdded }: AddProductFormProps) 
       submitData.append("price", formData.price);
       submitData.append("description", formData.description);
       submitData.append("category", formData.category);
-      if (formData.image) {
-        submitData.append("image", formData.image);
-      }
+      if (formData.image) submitData.append("image", formData.image);
 
       const response = await fetch(`${API_URL}/products`, {
         method: "POST",
         body: submitData,
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to add product");
-      }
+      if (!response.ok) throw new Error("Failed to add product");
 
       const data = await response.json();
-
       setMessage({ type: "success", text: `Product added! ID: ${data.id}` });
+
+      // Reset form
       setFormData({ name: "", price: "", description: "", category: "", image: null });
       setImagePreview("");
-
       onProductAdded?.();
 
       setTimeout(() => setMessage(null), 5000);
@@ -102,8 +85,6 @@ export default function AddProductForm({ onProductAdded }: AddProductFormProps) 
     }
   };
 
-  const inputClass = "w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm";
-
   return (
     <div className="p-6 bg-white rounded-lg shadow-md border border-gray-200">
       <h2 className="text-2xl font-bold mb-6 text-gray-800">Add New Product</h2>
@@ -111,27 +92,27 @@ export default function AddProductForm({ onProductAdded }: AddProductFormProps) 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium mb-1 text-gray-700">Name *</label>
-          <input type="text" name="name" value={formData.name} onChange={handleChange} className={inputClass} placeholder="Product name" required />
+          <input type="text" name="name" value={formData.name} onChange={handleChange} className={INPUT_CLASS} placeholder="Product name" required />
         </div>
 
         <div>
           <label className="block text-sm font-medium mb-1 text-gray-700">Price *</label>
-          <input type="number" name="price" value={formData.price} onChange={handleChange} step="0.01" min="0" className={inputClass} placeholder="0.00" required />
+          <input type="number" name="price" value={formData.price} onChange={handleChange} step="0.01" min="0" className={INPUT_CLASS} placeholder="0.00" required />
         </div>
 
         <div>
           <label className="block text-sm font-medium mb-1 text-gray-700">Category *</label>
-          <input type="text" name="category" value={formData.category} onChange={handleChange} className={inputClass} placeholder="e.g., electronics" required />
+          <input type="text" name="category" value={formData.category} onChange={handleChange} className={INPUT_CLASS} placeholder="e.g., electronics" required />
         </div>
 
         <div>
           <label className="block text-sm font-medium mb-1 text-gray-700">Description *</label>
-          <textarea name="description" value={formData.description} onChange={handleChange} rows={4} className={inputClass} placeholder="Product description" required />
+          <textarea name="description" value={formData.description} onChange={handleChange} rows={4} className={INPUT_CLASS} placeholder="Product description" required />
         </div>
 
         <div>
           <label className="block text-sm font-medium mb-1 text-gray-700">Image *</label>
-          <input type="file" accept="image/*" onChange={handleImageChange} className={inputClass} required />
+          <input type="file" accept="image/*" onChange={handleImageChange} className={INPUT_CLASS} required />
         </div>
 
         {imagePreview && (
