@@ -32,7 +32,19 @@ export const createProduct = async (req: Request, res: Response) => {
 export const updateProduct = async (req: Request, res: Response) => {
   const product = await Product.findByPk(req.params.id);
   if (product) {
-    await product.update(req.body);
+    const updateData: any = {
+      name: req.body.name,
+      description: req.body.description,
+      price: req.body.price,
+      category: req.body.category,
+    };
+
+    // Only update image if a new one was uploaded
+    if (req.file) {
+      updateData.image = req.file.filename;
+    }
+
+    await product.update(updateData);
     res.json(product);
   } else {
     res.status(404).json({ error: "Product not found" });
