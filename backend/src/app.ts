@@ -7,7 +7,13 @@ import "./models/index"; // Import models to register them with Sequelize
 
 const app = express();
 
-app.use(cors());
+app.use(
+  cors({
+    origin: [config.clientUrl],
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 app.use("/", productRoutes);
